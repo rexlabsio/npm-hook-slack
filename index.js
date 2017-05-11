@@ -14,6 +14,9 @@ assert(token, 'you must supply a slack api token in process.env.SLACK_API_TOKEN'
 var channelID = process.env.SLACK_CHANNEL;
 assert(channelID, 'you must supply a slack channel ID in process.env.SLACK_CHANNEL');
 var port = process.env.PORT || '6666';
+var slackOpts = {
+	as_user: true
+};
 
 // This is how we post to slack.
 var web = new slack.WebClient(token);
@@ -81,12 +84,12 @@ server.on('hook', function onIncomingHook(hook)
 		].join('\n');
 	}
 
-	web.chat.postMessage(channelID, message, { as_user: true });
+	web.chat.postMessage(channelID, message, slackOpts);
 });
 
 server.on('hook:error', function(message)
 {
-	web.chat.postMessage(channelID, '*error handling web hook:* ' + message);
+	web.chat.postMessage(channelID, '*error handling web hook:* ' + message, slackOpts);
 });
 
 // now make it ready for production
@@ -105,5 +108,5 @@ server.get('/ping', function handlePing(request, response, next)
 server.listen(port, function()
 {
 	logger.info('listening on ' + port);
-	web.chat.postMessage(channelID, 'npm hooks slackbot coming on line beep boop');
+	web.chat.postMessage(channelID, 'npm hooks slackbot coming on line beep boop', slackOpts);
 });
