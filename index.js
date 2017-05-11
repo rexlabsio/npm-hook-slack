@@ -81,7 +81,7 @@ server.on('hook', function onIncomingHook(hook)
 		].join('\n');
 	}
 
-	web.chat.postMessage(channelID, message);
+	web.chat.postMessage(channelID, message, { as_user: true });
 });
 
 server.on('hook:error', function(message)
