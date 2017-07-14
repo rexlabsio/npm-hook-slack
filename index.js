@@ -41,7 +41,7 @@ server.on('hook', function onIncomingHook(hook)
 	var change = hook.event.replace(type + ':', '');
 
 	var message;
-	console.log(hook.change);
+	logger.info(JSON.stringify(hook, null, 2));
 	var user = hook.change ? hook.change.user : '';
 
 	switch (hook.event)
@@ -62,6 +62,14 @@ server.on('hook', function onIncomingHook(hook)
 		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.version} unpublished`;
 		break;
 
+	case 'package:deprecated':
+		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.deprecated} deprecated`;
+		break;
+
+	case 'package:undeprecated':
+		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.deprecated} undeprecated`;
+		break;
+
 	case 'package:dist-tag':
 		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.version} new dist-tag: \`${hook.change['dist-tag']}\``;
 		break;
@@ -71,12 +79,12 @@ server.on('hook', function onIncomingHook(hook)
 		break;
 
 	case 'package:owner':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\> owner added: \`${hook.change.user}\``;
+		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\> owner added: \`${hook.change.maintainer}\``;
 
 		break;
 
 	case 'package:owner-rm':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\> owner removed: \`${hook.change.user}\``;
+		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\> owner removed: \`${hook.change.maintainer}\``;
 		break;
 
 	default:
