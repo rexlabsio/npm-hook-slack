@@ -20,7 +20,7 @@ var web = new slack.WebClient(token);
 
 // We can post the generic bot, or attempt to post as an inferred bot user.
 // If enabled, the bot user must be in the channel.
-var messageOpts = {
+var defaultMessageOpts = {
 	as_user: process.env.INFER_BOT_USER ? true : false
 };
 
@@ -40,59 +40,85 @@ server.on('hook', function onIncomingHook(hook)
 	var type = hook.type;
 	var change = hook.event.replace(type + ':', '');
 
-	var message;
-	console.log(hook.change);
+	var message, highlightedVersion;
+	logger.info('hook', JSON.stringify(hook));
 	var user = hook.change ? hook.change.user : '';
+	var maintainer = hook.change.maintainer;
 
 	switch (hook.event)
 	{
 	case 'package:star':
-		message = `★ \<https://www.npmjs.com/~${user}|${user}\> starred :package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>`;
+		message = `:package::star: *starred* by <https://www.npmjs.com/~${user}|${user}>`;
 		break;
 
 	case 'package:unstar':
-		message = `✩ \<https://www.npmjs.com/~${user}|${user}\> unstarred :package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>`;
+		message = `:package::disappointed: *unstarred* by <https://www.npmjs.com/~${user}|${user}>`;
 		break;
 
 	case 'package:publish':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.version} published!`;
+		highlightedVersion = hook.change.version;
+		message = `:package::sparkles: *published* version`;
 		break;
 
 	case 'package:unpublish':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.version} unpublished`;
+		highlightedVersion = hook.change.version;
+		message = `:package::wave: *unpublished* version`;
+		break;
+
+	case 'package:deprecated':
+		highlightedVersion = hook.change.deprecated;
+		message = `:package::skull_and_crossbones: *deprecated* version`;
+		break;
+
+	case 'package:undeprecated':
+		highlightedVersion = hook.change.deprecated;
+		message = `:package::worried: *undeprecated* version`;
 		break;
 
 	case 'package:dist-tag':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.version} new dist-tag: \`${hook.change['dist-tag']}\``;
+		var distTag = hook.change['dist-tag'];
+		highlightedVersion = hook.payload['dist-tags'][distTag];
+		message = `:package::label: added a *dist-tag*: \`${distTag}\``;
 		break;
 
 	case 'package:dist-tag-rm':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>@${hook.change.version} dist-tag removed: \`${hook.change['dist-tag']}\``;
+		message = `:package::fire: removed a *dist-tag*: \`${hook.change['dist-tag']}\``;
 		break;
 
 	case 'package:owner':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\> owner added: \`${hook.change.user}\``;
-
+		message = `:package::information_desk_person: added an owner: <https://www.npmjs.com/~${maintainer}|\`${maintainer}\`>`;
 		break;
 
 	case 'package:owner-rm':
-		message = `:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\> owner removed: \`${hook.change.user}\``;
+		message = `:package::no_good: removed an owner: <https://www.npmjs.com/~${maintainer}|\`${maintainer}\`>`;
 		break;
 
 	default:
-		message = [
-			`:package: \<https://www.npmjs.com/package/${pkg}|${hook.name}\>`,
-			'*event*: ' + change,
-			'*type*: ' + type,
-		].join('\n');
+		message = `:package: *event*: \`${change}\` | *type*: \`${type}\``;
 	}
 
-	web.chat.postMessage(channelID, message, messageOpts);
+	var attachment = {
+		fallback: `name: '${pkg}' | event: '${change}' | type: '${type}'`,
+		text: `_${message}_`,
+		color: '#cb3837',
+		title: hook.name,
+		title_link: `https://www.npmjs.com/package/${pkg}`,
+		mrkdwn_in: [ 'text', 'pretext' ]
+	};
+
+	if (highlightedVersion) {
+		attachment.author_name = `v${highlightedVersion}`;
+		attachment.author_icon = `https://cdn.rawgit.com/npm/logos/373398ec73257954872124f3224ff90e62f2635c/npm%20square/n-large.png`;
+	}
+
+	var messageOpts = Object.assign({ attachments: [attachment] }, defaultMessageOpts);
+	logger.info('message', JSON.stringify(messageOpts));
+	web.chat.postMessage(channelID, '', messageOpts);
 });
 
 server.on('hook:error', function(message)
 {
-	web.chat.postMessage(channelID, '*error handling web hook:* ' + message, messageOpts);
+	web.chat.postMessage(channelID, '*error handling web hook:* ' + message, defaultMessageOpts);
 });
 
 // now make it ready for production
