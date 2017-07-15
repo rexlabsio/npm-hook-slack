@@ -107,7 +107,7 @@ server.on('hook', function onIncomingHook(hook)
 	};
 
 	if (highlightedVersion) {
-		attachment.author_name = highlightedVersion;
+		attachment.author_name = `v${highlightedVersion}`;
 	}
 
 	var messageOpts = Object.assign({ attachments: [attachment] }, defaultMessageOpts);
