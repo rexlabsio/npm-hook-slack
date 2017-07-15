@@ -110,7 +110,7 @@ server.on('hook', function onIncomingHook(hook)
 		attachment.author_name = highlightedVersion;
 	}
 
-	var messageOpts = Object.assign({ attachment: attachment }, defaultMessageOpts);
+	var messageOpts = Object.assign({ attachments: [attachment] }, defaultMessageOpts);
 	logger.info('message', JSON.stringify(messageOpts));
 	web.chat.postMessage(channelID, '', messageOpts);
 });
