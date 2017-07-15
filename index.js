@@ -20,7 +20,7 @@ var web = new slack.WebClient(token);
 
 // We can post the generic bot, or attempt to post as an inferred bot user.
 // If enabled, the bot user must be in the channel.
-var messageOpts = {
+var defaultMessageOpts = {
 	as_user: process.env.INFER_BOT_USER ? true : false
 };
 
@@ -41,7 +41,7 @@ server.on('hook', function onIncomingHook(hook)
 	var change = hook.event.replace(type + ':', '');
 
 	var message, highlightedVersion;
-	logger.info(JSON.stringify(hook));
+	logger.info('hook', JSON.stringify(hook));
 	var user = hook.change ? hook.change.user : '';
 	var maintainer = hook.change.maintainer;
 
@@ -98,6 +98,7 @@ server.on('hook', function onIncomingHook(hook)
 	}
 
 	var attachment = {
+		fallback: `name: '${pkg}' | event: '${change}' | type: '${type}'`,
 		text: `_${message}_`,
 		color: '#cb3837',
 		title: pkg,
@@ -109,12 +110,14 @@ server.on('hook', function onIncomingHook(hook)
 		attachment.author_name = highlightedVersion;
 	}
 
-	web.chat.postMessage(channelID, '', Object.assign({ attachment: attachment }, messageOpts));
+	var messageOpts = Object.assign({ attachment: attachment }, defaultMessageOpts);
+	logger.info('message', JSON.stringify(messageOpts));
+	web.chat.postMessage(channelID, '', messageOpts);
 });
 
 server.on('hook:error', function(message)
 {
-	web.chat.postMessage(channelID, '*error handling web hook:* ' + message, messageOpts);
+	web.chat.postMessage(channelID, '*error handling web hook:* ' + message, defaultMessageOpts);
 });
 
 // now make it ready for production
