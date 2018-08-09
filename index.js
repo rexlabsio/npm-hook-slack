@@ -2,7 +2,7 @@ var
 	assert       = require('assert'),
 	bole         = require('bole'),
 	logstring    = require('common-log-string'),
-	makeReceiver = require('npm-hook-receiver'),
+	makeReceiver = require('@rexlabs/npm-hook-receiver'),
 	slack        = require('@slack/client')
 	;
 

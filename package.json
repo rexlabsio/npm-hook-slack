@@ -1,13 +1,16 @@
 {
-  "name": "npm-hook-slack",
+  "name": "@rexlabs/npm-hook-slack",
   "description": "listen for npm package hooks and report on them to Slack",
-  "version": "1.0.3",
-  "author": "C J Silverio <ceej@npmjs.com>",
+  "version": "1.1.0",
+  "authors": [
+    "C J Silverio <ceej@npmjs.com>",
+    "Lochlan Bunn <bunn@lochlan.io>"
+  ],
   "bugs": {
     "url": "https://github.com/npm/npm-hook-slack/issues"
   },
   "dependencies": {
-    "npm-hook-receiver": "~0.0.6",
+    "@rexlabs/npm-hook-receiver": "~1.0.0",
     "@slack/client": "~3.1.1",
     "bistre": "~1.0.1",
     "bole": "~2.0.0",
@@ -25,7 +28,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/npm/npm-hook-slack.git"
+    "url": "git+https://github.com/rexlabsio/npm-hook-slack.git"
   },
   "scripts": {
     "dev": "NODE_ENV=development node index.js | bistre",
